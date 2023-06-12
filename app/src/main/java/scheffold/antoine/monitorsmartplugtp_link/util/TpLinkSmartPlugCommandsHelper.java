@@ -1,4 +1,6 @@
-package scheffold.antoine.monitorsmartplugtp_link;
+package scheffold.antoine.monitorsmartplugtp_link.util;
+
+import androidx.annotation.NonNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,8 +10,11 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-public class Tp_Link_SmartPLug_Hacking {
+import scheffold.antoine.monitorsmartplugtp_link.Commands;
 
+public class TpLinkSmartPlugCommandsHelper {
+
+    public static final int TP_LINK_COMMUNICATION_PORT = 9999;
 
     public static int parseConsumingWatt(String toParse) {
         String[] seperatedByCommas = toParse.split(",");
@@ -23,51 +28,55 @@ public class Tp_Link_SmartPLug_Hacking {
         throw new IllegalStateException("No Watt consumption in String");
     }
 
-    public static String querySmartPlug(String ip, int port) throws IOException {
-        String cmd = "{\"emeter\":{\"get_realtime\":{}}}";
-        Socket socket = new Socket(ip, port);
+    public static String getSystemInfo(String ip) throws IOException {
+        String cmd = Commands.COMMANDS.get("info");
+        return queryCommand(ip, cmd);
+    }
+
+    public static String querySmartPlugMeter(String ip) throws IOException {
+        String cmd = Commands.COMMANDS.get("energy");
+        return queryCommand(ip, cmd);
+    }
+
+    public static String stopSmartPlug(String ip) throws IOException {
+        String cmd = Commands.COMMANDS.get("off");
+        return queryCommand(ip, cmd);
+    }
+
+    public static String startSmartPlug(String ip) throws IOException {
+        String cmd = Commands.COMMANDS.get("on");
+        return queryCommand(ip, cmd);
+    }
+
+    public static String configureWifi(String ip, String ssid, String password) throws IOException {
+        String cmd = Commands.COMMANDS.get("configwifi");
+        String formattedCmd = String.format(cmd, ssid, password);
+        return queryCommand(ip, formattedCmd);
+    }
+
+    // TODO: 23.05.23 configure WIFI of smartplug
+
+    @NonNull
+    private static String queryCommand(String ip, String cmd) throws IOException {
+        Socket socket = new Socket(ip, TP_LINK_COMMUNICATION_PORT);
         byte[] encryptedCmd = encrypt(cmd.getBytes());
-      //  System.out.println(bytesToHex(encryptedCmd));
         OutputStream socketOutputStream = socket.getOutputStream();
         socketOutputStream.write(encryptedCmd);
         socketOutputStream.flush();
-
         InputStream inputStream = socket.getInputStream();
         byte[] answer = new byte[2048];
         int a = inputStream.read(answer);
         socket.close();
-        System.out.println(a);
         byte[] decryptedAnswer = decrypt(answer);
-        byte[] smalerArray = cutOffArrayFromIndex(decryptedAnswer, a);
-        return new String(smalerArray, StandardCharsets.UTF_8);
+        byte[] smallerArray = cutOffArrayFromIndex(decryptedAnswer, a);
+        return new String(smallerArray, StandardCharsets.UTF_8);
     }
-
-    public static void stopSmartPlug(String ip, int port) throws IOException {
-        System.out.println("entering stopsmartplug function");
-        String cmd = "{\"system\":{\"set_relay_state\":{\"state\":0}}}";
-        Socket socket = new Socket(ip, port);
-        byte[] encryptedCmd = encrypt(cmd.getBytes());
-        OutputStream socketOutputStream = socket.getOutputStream();
-        socketOutputStream.write(encryptedCmd);
-        socketOutputStream.flush();
-
-        InputStream inputStream = socket.getInputStream();
-        byte[] answer = new byte[2048];
-        int a = inputStream.read(answer);
-        socket.close();
-        System.out.println(a);
-        byte[] decryptedAnswer = decrypt(answer);
-        byte[] smalerArray = cutOffArrayFromIndex(decryptedAnswer, a);
-        String answerAsString = new String(smalerArray, StandardCharsets.UTF_8);
-        System.out.println(answerAsString);
-    }
-
 
     // Encryption and Decryption of TP-Link Smart Home Protocol
 // XOR Autokey Cipher with starting key = 171
     private static byte[] decrypt (byte[] bytArr) {
         byte[] tmparr = new byte[bytArr.length];
-        if (bytArr != null && bytArr.length > 0) {
+        if (bytArr.length > 0) {
             int key = 171;
             for (int i = 4; i < bytArr.length; i++) {
                 byte b = (byte) (key ^ bytArr[i]);
@@ -79,11 +88,10 @@ public class Tp_Link_SmartPLug_Hacking {
     }
 
     private static byte[] encrypt (byte[] bArr) {
-        //i have no idea why;
         byte [] tmpArr = new byte[bArr.length + 4];
         byte[] otherArr = ByteBuffer.allocate(4).putInt(bArr.length).array();
         System.arraycopy(otherArr, 0, tmpArr, 0, otherArr.length);
-        if (bArr != null && bArr.length > 0) {
+        if (bArr.length > 0) {
             int key = 171;
             for (int i = 0; i < bArr.length; i++) {
                 byte b = (byte) (key ^ bArr[i]);
@@ -96,7 +104,7 @@ public class Tp_Link_SmartPLug_Hacking {
 
     private static byte[] cutOffArrayFromIndex(byte[] decryptedAnswer, int length) {
         byte[] smallerArray = new byte[length];
-        if (length >= 0) System.arraycopy(decryptedAnswer, 0, smallerArray, 0, length);
+        System.arraycopy(decryptedAnswer, 0, smallerArray, 0, length);
         return smallerArray;
     }
 

@@ -17,4 +17,25 @@
     <string name="attachment_summary_on">Automatically download attachments for incoming emails
     </string>
     <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <string name="threshold_text">Wattgrenze unter welcher die Steckdose abgeschalten wird.</string>
+    <string name="ip_address">IP Adresse</string>
+    <string name="standard_ip_address">192.168.0.172</string>
+    <string name="start_foregroundservice_btn">Start Vordergrundservice</string>
+    <string name="stop_foregroundservice_btn">Stop Vordergrundservice</string>
+    <string name="_300">300</string>
+    <string name="_20">20</string>
+    <string name="enable_plug">Steckdose einschalten</string>
+    <string name="disable_plug">Steckdose ausschalten</string>
+    <string name="tp_link_ip_address">tp_link_ip_address</string>
+    <string name="channel_name">notification_channel_name</string>
+    <string name="channel_description">A notification channel.</string>
+    <string name="currently_power_consumption">Stromverbrauch (W)</string>
+    <string name="initial_notification_text">Verbrauch nicht bekannt.</string>
+    <string name="configure_wifi">Wlan configurieren.</string>
+    <string name="wifi_name">WLAN-Name:</string>
+    <string name="wifi_password">WLAN-Passwort:</string>
+    <string name="ssid">SSID</string>
+    <string name="password">Passwort</string>
+    <string name="alert_dialog_title">Wlan Zugangsdaten</string>
+    <string name="ok">OK</string>
 </resources>

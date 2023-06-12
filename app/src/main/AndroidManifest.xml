@@ -3,7 +3,11 @@
     package="scheffold.antoine.monitorsmartplugtp_link">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+
     <application
+        android:name=".App"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -11,15 +15,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MonitorSmartPlugTP_Link">
         <service
-            android:process=":service"
-            android:name=".MyIntentService"
+            android:name=".service.MonitorSmartPlugEnergyConsumptionService"
             android:exported="false"/>
-        <service
-            android:name=".QuerySmartPlugService"
-            android:enabled="true"
-            android:exported="true" />
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.SmartPlugControlActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
