@@ -55,9 +55,14 @@ class MonitorSmartPlugEnergyConsumptionService : IntentService(TAG) {
             if (ACTION_START_FOREGROUND == action) {
                 createNotificationChannelIfNeeded()
                 startForeground(CHANNEL_ID, buildNotification())
+                val thresholdWatt = intent.getIntExtra(EXTRA_THRESHOLD_WATT, 0)
+                val ipAddress = intent.getStringExtra(EXTRA_IP_ADDRESS)
+                ipAddress?.let {
+                    handleActionFoo(it, thresholdWatt)
+                    return
+                }
                 val findTpLink = FindTpLink(object : FindTpLink.Callback {
                     override fun setFoundDeviceIp(result: String?) {
-                        val thresholdWatt = intent.getIntExtra(EXTRA_THRESHOLD_WATT, 0)
                         Log.d(TAG, "callingHandleActionFoo")
                         handleActionFoo(result, thresholdWatt)
                     }
@@ -76,7 +81,7 @@ class MonitorSmartPlugEnergyConsumptionService : IntentService(TAG) {
     }
 
     private fun handleActionFoo(ip: String?, thresholdInWatt: Int) {
-        val fiveMins = 5 * 60 * 1000
+        val towMins = 2 * 60 * 1000
         querySmartPlug = true
         // TODO: 12.06.23 do not use while true loop 
         while (querySmartPlug) {
@@ -93,12 +98,12 @@ class MonitorSmartPlugEnergyConsumptionService : IntentService(TAG) {
                     querySmartPlug = false
                     break
                 }
-                Thread.sleep(fiveMins.toLong())
             } catch (e: InterruptedException) {
                 e.printStackTrace()
             } catch (e: IOException) {
-                querySmartPlug = false
+                Log.e(TAG, "handleActionFoo: ",e )
             }
+            Thread.sleep(towMins.toLong())
         }
         stopForegroundService()
     }
@@ -167,12 +172,14 @@ class MonitorSmartPlugEnergyConsumptionService : IntentService(TAG) {
         private const val ACTION_START_FOREGROUND = "ACTION_START_FOREGROUND"
         private const val ACTION_STOP_FOREGROUND = "ACTION_STOP_FOREGROUND"
         private const val EXTRA_THRESHOLD_WATT = "EXTRA_THRESHOLD_WATT"
+        private const val EXTRA_IP_ADDRESS = "EXTRA_IP_ADDRESS"
         private const val NOTIFICATION_CHANNEL_1 = "NOTIFICATION_CHANNEL_1"
         private const val CHANNEL_ID = 83
-        fun startActionFoo(context: Context, thresholdInWatt: Int) {
+        fun startActionFoo(context: Context, thresholdInWatt: Int, ipAddress: String?) {
             val intent = Intent(context, MonitorSmartPlugEnergyConsumptionService::class.java)
             intent.setAction(ACTION_START_FOREGROUND)
             intent.putExtra(EXTRA_THRESHOLD_WATT, thresholdInWatt)
+            ipAddress?.let { intent.putExtra(EXTRA_IP_ADDRESS, it) }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
             } else {

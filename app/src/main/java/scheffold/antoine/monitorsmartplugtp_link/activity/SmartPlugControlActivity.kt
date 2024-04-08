@@ -28,28 +28,30 @@ import scheffold.antoine.monitorsmartplugtp_link.service.MonitorSmartPlugEnergyC
 import scheffold.antoine.monitorsmartplugtp_link.viewmodel.RequestViewModel
 
 class SmartPlugControlActivity : AppCompatActivity() {
-    private var binding: SmartPlugControlActivityBinding? = null
+    private lateinit var binding: SmartPlugControlActivityBinding
     private var notificationPermLauncher: ActivityResultLauncher<String>? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = SmartPlugControlActivityBinding.inflate(
             layoutInflater
         )
-        val view: View = binding!!.root
+        val view: View = binding.root
         setContentView(view)
         val viewModel = ViewModelProvider(this).get(
             RequestViewModel::class.java
         )
-        binding!!.startForegroundServiceButton.setOnClickListener { v: View? ->
+        binding.startForegroundServiceButton.setOnClickListener { v: View? ->
             val thresholdEditText = findViewById<EditText>(R.id.threshold)
             // TODO: 23.05.23 cannot be empty. Evaluate
             val thresholdInWatt = thresholdEditText.text.toString().toInt()
             MonitorSmartPlugEnergyConsumptionService.startActionFoo(
                 applicationContext,
-                thresholdInWatt
+                thresholdInWatt,
+                viewModel.networkResultLiveData.value
             )
         }
-        binding!!.stopForegroundServiceButton.setOnClickListener { v: View? ->
+        binding.stopForegroundServiceButton.setOnClickListener { v: View? ->
             val am = getSystemService(ACTIVITY_SERVICE) as ActivityManager
             val runningAppProcesses = am.runningAppProcesses
             for (next in runningAppProcesses) {
@@ -60,12 +62,12 @@ class SmartPlugControlActivity : AppCompatActivity() {
                 }
             }
         }
-        binding!!.enablePlugDevice.setOnClickListener { v: View? ->
+        binding.enablePlugDevice.setOnClickListener { v: View? ->
             val sharedPref = getPreferences(MODE_PRIVATE)
             val ip = sharedPref.getString(getString(R.string.tp_link_ip_address), "")
             viewModel.enablePlugDevice(ip)
         }
-        binding!!.disablePlugDevice.setOnClickListener { v: View? ->
+        binding.disablePlugDevice.setOnClickListener { v: View? ->
             val sharedPref = getPreferences(MODE_PRIVATE)
             val ip = sharedPref.getString(getString(R.string.tp_link_ip_address), "")
             viewModel.disablePlugDevice(ip)
@@ -136,7 +138,7 @@ class SmartPlugControlActivity : AppCompatActivity() {
         val editor = sharedPref.edit()
         editor.putString(getString(R.string.tp_link_ip_address), result)
         editor.apply()
-        binding!!.indeterminateBar.visibility = View.GONE
+        binding.indeterminateBar.visibility = View.GONE
     }
 
     companion object {

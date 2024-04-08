@@ -11,8 +11,8 @@ import java.io.IOException
 import java.util.concurrent.locks.ReentrantLock
 
 class RequestViewModel : ViewModel() {
-    val networkResultLiveData = MutableLiveData<String?>()
-    val errorLiveData = MutableLiveData<Exception?>()
+    val networkResultLiveData = MutableLiveData<String>()
+    val errorLiveData = MutableLiveData<Exception>()
     var lock = ReentrantLock()
     var foundIp: String? = null
 
