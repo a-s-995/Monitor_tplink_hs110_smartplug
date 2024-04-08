@@ -30,6 +30,7 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    namespace 'scheffold.antoine.monitorsmartplugtp_link'
 }
 
 dependencies {
