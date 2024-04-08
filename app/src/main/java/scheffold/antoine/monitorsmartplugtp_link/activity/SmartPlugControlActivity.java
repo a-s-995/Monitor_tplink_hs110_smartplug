@@ -1,17 +1,29 @@
 package scheffold.antoine.monitorsmartplugtp_link.activity;
 
+import android.Manifest;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Process;
+import android.provider.Settings;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import java.util.List;
@@ -26,6 +38,8 @@ public class SmartPlugControlActivity extends AppCompatActivity {
 
     private static final String FRAGMENT_WIFI_CONFIGURATION_DIALOG = "FRAGMENT_WIFI_CONFIGURATION_DIALOG";
     private SmartPlugControlActivityBinding binding;
+    private ActivityResultLauncher<String> notificationPermLauncher;
+    private static final int REQUEST_CODE_BATTERY_OPTIMIZATIONS = 1001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +85,13 @@ public class SmartPlugControlActivity extends AppCompatActivity {
         viewModel.getErrorLiveData().observe(this, error ->
                 Toast.makeText(this, error.getMessage(), Toast.LENGTH_LONG).show());
         viewModel.findTpLinkSmartPlugDevice(this);
+        notificationPermLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(),
+                granted -> {});
+        requestNotificationsPermission();
+        // Check if the device is running Android Marshmallow (API 23) or higher
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestBatteryOptimizations();
+        }
     }
 
 
@@ -89,6 +110,35 @@ public class SmartPlugControlActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void requestNotificationsPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return;
+
+        String permission = Manifest.permission.POST_NOTIFICATIONS;
+        boolean granted = ContextCompat.checkSelfPermission(
+                getApplicationContext(), permission
+        ) == PackageManager.PERMISSION_GRANTED;
+
+        if (granted) return;
+
+        notificationPermLauncher.launch(permission);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void requestBatteryOptimizations() {
+        Intent intent = new Intent();
+        intent.setAction(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+        intent.setData(Uri.parse("package:" + getPackageName()));
+        startActivityForResult(intent, REQUEST_CODE_BATTERY_OPTIMIZATIONS);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_BATTERY_OPTIMIZATIONS) {
+            Log.d("YourActivity", "onActivityResult: " + (data != null ? data.getData() : null));
+        }
     }
 
     private void handleFoundIpAddress(String result) {

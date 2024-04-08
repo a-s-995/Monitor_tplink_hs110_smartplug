@@ -1,5 +1,7 @@
 package scheffold.antoine.monitorsmartplugtp_link;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.List;
@@ -12,6 +14,7 @@ public class SearchTpLinkDeviceRunnable implements Runnable{
         private final String host;
         private final ReentrantLock lock;
         private final List<String> foundIps;
+        private final String TAG = SearchTpLinkDeviceRunnable.class.getSimpleName();
 
         public SearchTpLinkDeviceRunnable(String host, ReentrantLock lock, List<String> foundIps) {
             this.host = host;
@@ -22,6 +25,7 @@ public class SearchTpLinkDeviceRunnable implements Runnable{
         @Override
         public void run() {
             try {
+                Log.d(TAG, "run: with ip address " + host);
                 InetAddress inetAddress = InetAddress.getByName(host);
                 boolean isReachable = inetAddress.isReachable(TIMEOUT_MS);
                 if (isReachable) {

@@ -7,7 +7,9 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.os.PowerManager;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
@@ -30,6 +32,8 @@ public class MonitorSmartPlugEnergyConsumptionService extends IntentService {
     private static final int CHANNEL_ID = 83;
     boolean querySmartPlug;
     private NotificationCompat.Builder notificationBuilder;
+    private PowerManager.WakeLock wakeLock;
+    private WifiManager.WifiLock mWifiLock;
 
     public MonitorSmartPlugEnergyConsumptionService() {
         super(TAG);
@@ -47,7 +51,22 @@ public class MonitorSmartPlugEnergyConsumptionService extends IntentService {
     }
 
     @Override
+    public void onCreate() {
+        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MC2::ForegroundServiceWakeLock");
+        wakeLock.acquire(30*60*1000L /*30 minutes*/);
+        final WifiManager mgr = (WifiManager) getApplicationContext()
+                .getSystemService(WIFI_SERVICE);
+
+        mWifiLock = mgr.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, null);
+        mWifiLock.acquire();
+        super.onCreate();
+    }
+
+    @Override
     public void onDestroy() {
+        mWifiLock.release();
+        wakeLock.release();
         super.onDestroy();
     }
 

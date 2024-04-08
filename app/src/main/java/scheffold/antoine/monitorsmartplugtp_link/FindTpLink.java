@@ -6,6 +6,8 @@ import android.text.format.Formatter;
 
 import androidx.annotation.NonNull;
 
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -33,18 +35,25 @@ public class FindTpLink {
         for (int i = 1; i <= 255; i++) {
             String host = ipBaseAddress + i;
             SearchTpLinkDeviceRunnable runnable = new SearchTpLinkDeviceRunnable(host, lock, foundIps);
-            executorService.execute(runnable);
+            executorService.submit(runnable);
+        }
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
         }
         executorService.shutdown();
-        boolean terminatedThreads;
-        try {
-            terminatedThreads = executorService.awaitTermination(10000, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        if (!terminatedThreads) {
-            callback.setError(new IllegalStateException("Not all Threads are terminated"));
+//        boolean terminatedThreads;
+//        try {
+//            terminatedThreads = executorService.awaitTermination(10, TimeUnit.SECONDS);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
+//        if (!terminatedThreads) {
+//            callback.setError(new IllegalStateException("Not all Threads are terminated"));
             // show error not terminated, something crashed
+        if (false) {
+
         } else if (foundIps.isEmpty()) {
             callback.setError(new NoIpInNetworkFoundException());
             // show error found no IP found in current network
