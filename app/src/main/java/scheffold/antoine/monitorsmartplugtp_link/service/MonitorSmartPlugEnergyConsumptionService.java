@@ -47,6 +47,11 @@ public class MonitorSmartPlugEnergyConsumptionService extends IntentService {
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
             final String action = intent.getAction();
