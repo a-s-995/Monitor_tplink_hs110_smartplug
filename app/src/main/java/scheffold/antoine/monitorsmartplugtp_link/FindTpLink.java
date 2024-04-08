@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -25,17 +26,19 @@ public class FindTpLink {
 
     public void findTpLinkSmartPlugDevice(Context context) {
         String ipBaseAddress = getIpBaseAddress(context);
-        ExecutorService executorService = Executors.newFixedThreadPool(100);
+        ExecutorService executorService = Executors.newFixedThreadPool(32);
         ReentrantLock lock = new ReentrantLock();
         List<String> foundIps = new ArrayList<>();
-        for (int i = 170; i <= 255; i++) {
+        CountDownLatch latch = new CountDownLatch(255);
+        for (int i = 1; i <= 255; i++) {
             String host = ipBaseAddress + i;
-            executorService.execute(new SearchTpLinkDeviceRunnable(host, lock, foundIps));
+            SearchTpLinkDeviceRunnable runnable = new SearchTpLinkDeviceRunnable(host, lock, foundIps);
+            executorService.execute(runnable);
         }
         executorService.shutdown();
         boolean terminatedThreads;
         try {
-            terminatedThreads = executorService.awaitTermination(80, TimeUnit.SECONDS);
+            terminatedThreads = executorService.awaitTermination(10000, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
